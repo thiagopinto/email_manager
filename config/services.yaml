@@ -22,3 +22,12 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    # -----------------------------------------------------------------#
+
+    # Use a service locator to inject RequestStack automatically into all repositories
+    App\Repository\:
+        #resource: '../src/Repository'
+        resource: '../src/Repository/*'
+        tags: ['doctrine.repository_service']
+        calls:
+            - [setRequestStack, ['@request_stack']]

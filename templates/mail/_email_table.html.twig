@@ -1,0 +1,100 @@
+<table class="table">
+	<thead>
+		<tr>
+			<th class="sortable" data-sort="id" data-order="{{mails.order}}">
+				Id
+				{% if mails.sort == 'id' %}
+					<span class="sort-icon sort-{{ mails.order | lower }}"></span>
+				{% endif %}
+			</th>
+			<th class="sortable" data-sort="email" data-order="{{mails.order}}">
+				Email
+				{% if mails.sort == 'email' %}
+					<span class="sort-icon sort-{{ mails.order | lower }}"></span>
+				{% endif %}
+			</th>
+			<th class="sortable" data-sort="status" data-order="{{mails.order}}">
+				Status
+				{% if mails.sort == 'status' %}
+					<span class="sort-icon sort-{{ mails.order | lower }}"></span>
+				{% endif %}
+			</th>
+			<th class="sortable" data-sort="createdAt" data-order="{{mails.order}}">
+				CreatedAt
+				{% if mails.sort == 'createdAt' %}
+					<span class="sort-icon sort-{{ mails.order | lower }}"></span>
+				{% endif %}
+			</th>
+			<th class="sortable" data-sort="updatedAt" data-order="{{mails.order}}">
+				UpdatedAt
+				{% if mails.sort == 'updatedAt' %}
+					<span class="sort-icon sort-{{ mails.order | lower }}"></span>
+				{% endif %}
+			</th>
+			<th>
+				Actions
+			</th>
+		</tr>
+	</thead>
+
+	<tbody>
+		{% for mail in mails.items %}
+			<tr>
+				<td>{{ mail.id }}</td>
+				<td>{{ mail.email }}</td>
+				<td>
+					<select class="select select-ghost select-sm w-full max-w-xs status" data-id="{{ mail.id }}">
+						{% for key, value in options %}
+							<option value="{{key}}" {% if mail.status == key %} selected {% endif %}>{{value}}</option>
+						{% endfor %}
+					</select>
+				</td>
+				<td>{{ mail.createdAt ? mail.createdAt|date('m/d/Y H:i:s') : '' }}</td>
+				<td>{{ mail.updatedAt ? mail.updatedAt|date('m/d/Y H:i:s') : '' }}</td>
+				<td>
+					<a class="btn btn-primary btn-sm" href="{{ path('app_mail_show', { id: mail.id }) }}">show</a>
+					{# <a href="{{ path('app_mail_edit', { id: mail.id }) }}">edit</a> #}
+				</td>
+			</tr>
+		{% else %}
+			<tr>
+				<td colspan="6">no records found</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+<div class="card-actions justify-end">
+	{% if mails.total_pages > 1 %}
+		<div class="join pagination">
+			{% if mails.current_page > 1 %}
+				<a href="#" data-page="{{ mails.current_page - 1 }}" class="join-item btn btn-sm">«</a>
+			{% endif %}
+			{% if mails.current_page <= mails.total_pages - 2 %}
+				{% for item in mails.current_page..mails.current_page + 2 %}
+					<a href="#" data-page="{{item}}" class="join-item btn btn-sm">{{item}}</a>
+				{% endfor %}
+			{% else %}
+				{% for item in mails.total_pages - 2..mails.total_pages %}
+					{% if item > 0 %}
+						<a href="#" data-page="{{item}}" class="join-item btn btn-sm">{{item}}</a>
+					{% endif %}
+				{% endfor %}
+			{% endif %}
+			<a class="join-item btn btn-sm btn-disabled">...</a>
+			{% if mails.total_pages > 7 %}
+				{% for item in mails.total_pages - 2..mails.total_pages %}
+					<a href="#" data-page="{{item}}" class="join-item btn btn-sm">{{item}}</a>
+				{% endfor %}
+			{% endif %}
+			{% if mails.current_page < mails.total_pages %}
+				<a href="#" data-page="{{mails.current_page + 1}}" class="join-item btn btn-sm">»</a>
+			{% endif %}
+		</div>
+		<div class="grid justify-start content-center p-1">
+			{{mails.current_page }}
+			de
+			{{mails.total_pages}}
+		</div>
+	{% endif %}
+	{#<a class="btn" href="{{ path('app_mail_new') }}"> Create new </a>#}
+</div>

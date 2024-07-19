@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.page-full {
+  width: 100%;
+  min-height: 96vh;
+  display: grid;
+  place-items: center;
+  background-size: cover;
+  background-position: center;
+}
+
+.card-title {
+  @apply bg-base-200 rounded-lg h-10 flex justify-between p-2;
+}
+
+.sortable {
+  cursor: pointer;
+}
+.sort-icon {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+}
+.sort-asc::after {
+  content: "▲";
+  font-size: 10px;
+}
+.sort-desc::after {
+  content: "▼";
+  font-size: 10px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s forwards;
+}
+
+.fade-out {
+  animation: fadeOut 0.5s forwards;
+}

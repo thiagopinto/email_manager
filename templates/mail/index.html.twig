@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+{% block title %}
+	Lista de email
+{% endblock %}
+{% block javascripts %}
+	{{ parent() }}
+	{{ encore_entry_script_tags('email_table') }}
+{% endblock %}
+{% block body %}
+	<div class="page-full bg-base-300">
+		<div class="w-9/12">
+			<div class="card bg-base-100 w-full shadow-xl">
+				<div class="card-body">
+					<div class="card-title">
+						<h1>Lista de email</h1>
+						<label class="input input-bordered flex items-center gap-2 input-sm">
+							<input id="search" type="text" class="grow" placeholder="Search"/>
+							<img class="h-4 w-4 opacity-70" src="{{ asset('build/images/svg/search.svg') }}" alt="search">
+						</label>
+					</div>
+					<div id="skeleton" class="skeleton h-[38rem] w-full hidden"></div>
+					<div id="email-table-list">
+						{{ include('mail/_email_table.html.twig', {mails: mails, options: options}) }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
