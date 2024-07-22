@@ -44,7 +44,7 @@ class ParsePostfixLogsCommand extends Command
         if ($fileHandle) {
             while (($line = fgets($fileHandle)) !== false) {
                 $matches = [];
-                if (preg_match('/^(\w+\s+\d+\s+\d+:\d+:\d+).*to=<([^>]+)>.*status=deferred.*\((.*)\)/i', $line, $matches)) {
+                if (preg_match('/^(\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+postfix\/smtp\[\d+\]:\s+\w+:\s+to=<([^>]+)>,.*status=(\w+)\s+\((.*)\)$/', $line, $matches)) {
                     $dateTime = \DateTime::createFromFormat('M d H:i:s', $matches[1]);
                     $dateTime->setDate(date('Y'), $dateTime->format('m'), $dateTime->format('d'));
                     $email = $matches[2];
