@@ -54,6 +54,7 @@ class ParsePostfixLogsCommand extends Command
                     $bouncedEmail->setDateTime($dateTime);
                     $bouncedEmail->setEmail($email);
                     $bouncedEmail->setReason($reason);
+                    $bouncedEmail->setStatus('Deferred');
 
                     $this->entityManager->persist($bouncedEmail);
                 }
