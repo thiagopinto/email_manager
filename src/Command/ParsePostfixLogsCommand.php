@@ -39,42 +39,62 @@ class ParsePostfixLogsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $logFile = $input->getArgument('logfile');
-        $fileHandle = fopen($logFile, 'r');
+        $newLogContent = '';
 
-        if ($fileHandle) {
-            while (($line = fgets($fileHandle)) !== false) {
-                $matches = [];
-                if (preg_match('/^(\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+postfix\/smtp\[\d+\]:\s+\w+:\s+to=<([^>]+)>,.*status=(\w+)\s+\((.*)\)$/', $line, $matches)) {
-                    $dateTime = \DateTime::createFromFormat('M d H:i:s', $matches[1]);
-                    $dateTime->setDate(date('Y'), $dateTime->format('m'), $dateTime->format('d'));
-                    $email = $matches[2];
-                    $reason = $matches[3];
+        if (file_exists($logFile)) {
+            $handle = fopen($logFile, 'r');
+            if ($handle) {
+                while (($line = fgets($handle)) !== false) {
+                    if (preg_match('/^(\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+postfix\/smtp\[\d+\]:\s+\w+:\s+to=<([^>]+)>,.*status=deferred\s+\((.*)\)$/', $line, $matches)) {
+                        $date = $matches[1];
+                        $email = $matches[2];
+                        $reason = $matches[3];
 
-                    $bouncedEmail = new BouncedEmail();
-                    $bouncedEmail->setDateTime($dateTime);
-                    $bouncedEmail->setEmail($email);
-                    $bouncedEmail->setReason($reason);
-                    $bouncedEmail->setStatus('Deferred');
 
-                    $this->entityManager->persist($bouncedEmail);
+                        // Busca no banco de dados para ver se o registro já existe
+                        $existingEmailLog = $this->entityManager->getRepository(BouncedEmail::class)->findOneBy(['email' => $email]);
+
+                        if ($existingEmailLog) {
+                            // Atualiza o registro existente
+                            $existingEmailLog->setDate(new \DateTime($date));
+                            $existingEmailLog->setReason($reason);
+                            $this->entityManager->flush();
+                        } else {
+                            // Cria uma nova entidade e persiste no banco de dados
+                            $bouncedEmail = new BouncedEmail();
+                            $bouncedEmail->setDateTime(new \DateTime($date));
+                            $bouncedEmail->setEmail($email);
+                            $bouncedEmail->setStatus('deferred');
+                            $bouncedEmail->setReason($reason);
+                            $this->entityManager->persist($bouncedEmail);
+                            $this->entityManager->flush();
+                        }
+
+                    } else {
+                        $newLogContent .= $line;
+                    }
                 }
+
+                // Salva as alterações no banco de dados
+                $this->entityManager->flush();
+
+                // Fecha o arquivo de log
+                fclose($handle);
+
+                // Reescreve o arquivo de log sem as linhas "deferred"
+                file_put_contents($logFile, $newLogContent);
+
+                $output->writeln('Log file processed, deferred entries removed, and log file updated.');
+            } else {
+                $output->writeln('Error opening log file.');
+                return Command::FAILURE;
             }
-            fclose($fileHandle);
-
-            $this->entityManager->flush();
-
-            // Limpar o arquivo de log
-            file_put_contents($logFile, '');
-
-            // Remover mensagens deferred da fila do Postfix
-            exec('postsuper -d ALL deferred');
-
-            $output->writeln('Bounced emails have been parsed and inserted into the database.');
-            $output->writeln('The log file has been cleared and deferred messages have been removed from the Postfix queue.');
-            return Command::SUCCESS;
         } else {
-            $output->writeln('Error opening the log file.');
+            $output->writeln('Log file does not exist.');
             return Command::FAILURE;
         }
+
+        return Command::SUCCESS;
+
     }
 }
