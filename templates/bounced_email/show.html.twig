@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}BouncedEmail{% endblock %}
+
+{% block body %}
+    <h1>BouncedEmail</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ bounced_email.id }}</td>
+            </tr>
+            <tr>
+                <th>DateTime</th>
+                <td>{{ bounced_email.dateTime ? bounced_email.dateTime|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ bounced_email.email }}</td>
+            </tr>
+            <tr>
+                <th>Reason</th>
+                <td>{{ bounced_email.reason }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ bounced_email.status }}</td>
+            </tr>
+            <tr>
+                <th>CreatedAt</th>
+                <td>{{ bounced_email.createdAt ? bounced_email.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>UpdatedAt</th>
+                <td>{{ bounced_email.updatedAt ? bounced_email.updatedAt|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_bounced_email_index') }}">back to list</a>
+
+    <a href="{{ path('app_bounced_email_edit', {'id': bounced_email.id}) }}">edit</a>
+
+    {{ include('bounced_email/_delete_form.html.twig') }}
+{% endblock %}

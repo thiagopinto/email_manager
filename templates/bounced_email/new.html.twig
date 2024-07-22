@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New BouncedEmail{% endblock %}
+
+{% block body %}
+    <h1>Create new BouncedEmail</h1>
+
+    {{ include('bounced_email/_form.html.twig') }}
+
+    <a href="{{ path('app_bounced_email_index') }}">back to list</a>
+{% endblock %}

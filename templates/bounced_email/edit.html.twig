@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit BouncedEmail{% endblock %}
+
+{% block body %}
+    <h1>Edit BouncedEmail</h1>
+
+    {{ include('bounced_email/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_bounced_email_index') }}">back to list</a>
+
+    {{ include('bounced_email/_delete_form.html.twig') }}
+{% endblock %}
