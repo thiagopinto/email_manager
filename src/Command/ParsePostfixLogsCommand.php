@@ -13,8 +13,10 @@ use App\Entity\BouncedEmail;
 use Doctrine\ORM\EntityManagerInterface;
 
 #[AsCommand(
-    name: 'ParsePostfixLogs',
-    description: 'Add a short description for your command',
+    name: 'app:parse-postfix-logs',
+    description: 'Load log bounce email',
+    hidden: false,
+    aliases: ['app:parse-postfix-logs']
 )]
 class ParsePostfixLogsCommand extends Command
 {
