@@ -9,6 +9,8 @@ use App\Entity\Traits\TimestampableTrait;
 use App\Repository\BouncedEmailRepository;
 
 #[ORM\Entity(repositoryClass: BouncedEmailRepository::class)]
+#[ORM\HasLifecycleCallbacks]
+
 class BouncedEmail
 {
     use TimestampableTrait;
