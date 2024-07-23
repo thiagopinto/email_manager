@@ -16,5 +16,16 @@ LOG_FILE="/var/log/mail.log"
 # Executar o comando Symfony como yuans5732
 php $PROJECT_DIR/bin/console app:parse-postfix-logs $LOG_FILE
 
-# Limpar as filas de emails deferred como root
-postsuper -d ALL deferred
+#!/bin/bash
+
+# Obtém os IDs das mensagens na fila deferred
+deferred_ids=$(mailq | awk '$7 == "deferred" {print $1}' | tr -d '*')
+
+# Para cada ID de mensagem, verifique se contém "Connection timed out"
+for id in $deferred_ids; do
+    if ! postcat -q $id | grep -q "Connection timed out"; then
+        postsuper -d $id
+        echo "Email $id deleted"
+    fi
+done
+
