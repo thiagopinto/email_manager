@@ -16,7 +16,6 @@ LOG_FILE="/var/log/mail.log"
 # Executar o comando Symfony como yuans5732
 php $PROJECT_DIR/bin/console app:parse-postfix-logs $LOG_FILE
 
-#!/bin/bash
 
 # Obtém os IDs das mensagens na fila deferred
 deferred_ids=$(mailq | awk '$7 == "deferred" {print $1}' | tr -d '*')
