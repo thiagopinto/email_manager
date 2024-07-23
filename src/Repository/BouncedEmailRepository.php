@@ -3,17 +3,23 @@
 namespace App\Repository;
 
 use App\Entity\BouncedEmail;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Repository\Traits\PaginationTrait;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<BouncedEmail>
  */
 class BouncedEmailRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    use PaginationTrait;
+
+    public function __construct(ManagerRegistry $registry, RequestStack $requestStack)
     {
         parent::__construct($registry, BouncedEmail::class);
+        $this->setRequestStack($requestStack);
+        $this->queryAlias = 'q';
     }
 
     public function save(BouncedEmail $mail): BouncedEmail
