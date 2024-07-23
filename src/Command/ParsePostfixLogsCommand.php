@@ -6,9 +6,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 use App\Entity\BouncedEmail;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -41,66 +39,68 @@ class ParsePostfixLogsCommand extends Command
         $logFile = $input->getArgument('logfile');
         $newLogContent = '';
 
-        if (file_exists($logFile)) {
-            $handle = fopen($logFile, 'r');
-            if ($handle) {
-                while (($line = fgets($handle)) !== false) {
-                    if (preg_match('/^(\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+postfix\/smtp\[\d+\]:\s+\w+:\s+to=<([^>]+)>,.*status=deferred\s+\((.*)\)$/', $line, $matches)) {
-                        $date = $matches[1];
-                        $email = $matches[2];
-                        $reason = $matches[3];
-
-                        // Verifica se a razão contém "Connection timed out"
-                        if (strpos($reason, 'Connection timed out') !== false) {
-                            // Busca no banco de dados para ver se o registro já existe
-                            $existingEmailLog = $this->entityManager->getRepository(BouncedEmail::class)->findOneBy(['email' => $email]);
-
-                            if ($existingEmailLog) {
-                                // Atualiza o registro existente
-                                $existingEmailLog->setDateTime(new \DateTime($date));
-                                $existingEmailLog->setReason($reason);
-                                $this->entityManager->flush();
-                            } else {
-                                // Cria uma nova entidade e persiste no banco de dados
-                                $bouncedEmail = new BouncedEmail();
-                                $bouncedEmail->setDateTime(new \DateTime($date));
-                                $bouncedEmail->setEmail($email);
-                                $bouncedEmail->setStatus('Deferred');
-                                $bouncedEmail->setReason($reason);
-                                $this->entityManager->persist($bouncedEmail);
-                                $this->entityManager->flush();
-                            }
-
-                        } else {
-                            // Se a razão contém "Connection timed out", ignore este registro
-                            continue;
-                        }
-
-                    } else {
-                        $newLogContent .= $line;
-                    }
-                }
-
-                // Salva as alterações no banco de dados
-                $this->entityManager->flush();
-
-                // Fecha o arquivo de log
-                fclose($handle);
-
-                // Reescreve o arquivo de log sem as linhas "deferred"
-                file_put_contents($logFile, $newLogContent);
-
-                $output->writeln('Log file processed, deferred entries removed, and log file updated.');
-            } else {
-                $output->writeln('Error opening log file.');
-                return Command::FAILURE;
-            }
-        } else {
+        if (!file_exists($logFile)) {
             $output->writeln('Log file does not exist.');
             return Command::FAILURE;
         }
 
-        return Command::SUCCESS;
+        if (!$handle = fopen($logFile, 'r')) {
+            $output->writeln('Error opening log file.');
+            return Command::FAILURE;
+        }
 
+        while (($line = fgets($handle)) !== false) {
+            if ($this->isDeferredLine($line)) {
+                list($date, $email, $reason) = $this->parseLogLine($line);
+
+                if ($this->shouldProcessLine($reason)) {
+                    $this->processDeferredLine($date, $email, $reason);
+                }
+            } else {
+                $newLogContent .= $line;
+            }
+        }
+
+        fclose($handle);
+        $this->entityManager->flush();
+        file_put_contents($logFile, $newLogContent);
+
+        $output->writeln('Log file processed, deferred entries removed, and log file updated.');
+
+        return Command::SUCCESS;
+    }
+
+    private function isDeferredLine(string $line): bool
+    {
+        return preg_match('/^(\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+postfix\/smtp\[\d+\]:\s+\w+:\s+to=<([^>]+)>,.*status=deferred\s+\((.*)\)$/', $line);
+    }
+
+    private function parseLogLine(string $line): array
+    {
+        preg_match('/^(\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+postfix\/smtp\[\d+\]:\s+\w+:\s+to=<([^>]+)>,.*status=deferred\s+\((.*)\)$/', $line, $matches);
+        return [$matches[1], $matches[2], $matches[3]];
+    }
+
+    private function shouldProcessLine(string $reason): bool
+    {
+        // Use stripos to ignore case when checking for "Connection timed out"
+        return stripos($reason, 'Connection timed out') === false;
+    }
+
+    private function processDeferredLine(string $date, string $email, string $reason): void
+    {
+        $existingEmailLog = $this->entityManager->getRepository(BouncedEmail::class)->findOneBy(['email' => $email]);
+
+        if ($existingEmailLog) {
+            $existingEmailLog->setDateTime(new \DateTime($date));
+            $existingEmailLog->setReason($reason);
+        } else {
+            $bouncedEmail = new BouncedEmail();
+            $bouncedEmail->setDateTime(new \DateTime($date));
+            $bouncedEmail->setEmail($email);
+            $bouncedEmail->setStatus('Deferred');
+            $bouncedEmail->setReason($reason);
+            $this->entityManager->persist($bouncedEmail);
+        }
     }
 }
