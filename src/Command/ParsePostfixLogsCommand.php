@@ -56,7 +56,7 @@ class ParsePostfixLogsCommand extends Command
 
                         if ($existingEmailLog) {
                             // Atualiza o registro existente
-                            $existingEmailLog->setDate(new \DateTime($date));
+                            $existingEmailLog->setDateTime(new \DateTime($date));
                             $existingEmailLog->setReason($reason);
                             $this->entityManager->flush();
                         } else {
