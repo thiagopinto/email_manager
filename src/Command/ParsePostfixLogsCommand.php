@@ -51,7 +51,7 @@ class ParsePostfixLogsCommand extends Command
                         $reason = $matches[3];
 
                         // Verifica se a razão contém "Connection timed out"
-                        if (strpos($reason, 'Connection timed out') === false) {
+                        if (strpos($reason, 'Connection timed out') !== false) {
                             // Busca no banco de dados para ver se o registro já existe
                             $existingEmailLog = $this->entityManager->getRepository(BouncedEmail::class)->findOneBy(['email' => $email]);
 
