@@ -1,0 +1,70 @@
+<table class="table">
+	<thead>
+		<tr>
+			<th>Id</th>
+			<th>DateTime</th>
+			<th>mail</th>
+			<th>Reason</th>
+			<th>Status</th>
+			<th>CreatedAt</th>
+			<th>UpdatedAt</th>
+			<th>actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for mail in mails.items %}
+			<tr>
+				<td>{{ mail.id }}</td>
+				<td>{{ mail.dateTime ? mail.dateTime|date('Y-m-d H:i:s') : '' }}</td>
+				<td>{{ mail.mail }}</td>
+				<td>{{ mail.reason }}</td>
+				<td>{{ mail.status }}</td>
+				<td>{{ mail.createdAt ? mail.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+				<td>{{ mail.updatedAt ? mail.updatedAt|date('Y-m-d H:i:s') : '' }}</td>
+				<td>
+					<a href="{{ path('app_mail_show', {'id': mail.id}) }}">show</a>
+					<a href="{{ path('app_mail_edit', {'id': mail.id}) }}">edit</a>
+				</td>
+			</tr>
+		{% else %}
+			<tr>
+				<td colspan="8">no records found</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+<div class="card-actions justify-end">
+	{% if mails.total_pages > 1 %}
+		<div class="join pagination">
+			{% if mails.current_page > 1 %}
+				<a href="#" data-page="{{ mails.current_page - 1 }}" class="join-item btn btn-sm">«</a>
+			{% endif %}
+			{% if mails.current_page <= mails.total_pages - 2 %}
+				{% for item in mails.current_page..mails.current_page + 2 %}
+					<a href="#" data-page="{{item}}" class="join-item btn btn-sm">{{item}}</a>
+				{% endfor %}
+			{% else %}
+				{% for item in mails.total_pages - 2..mails.total_pages %}
+					{% if item > 0 %}
+						<a href="#" data-page="{{item}}" class="join-item btn btn-sm">{{item}}</a>
+					{% endif %}
+				{% endfor %}
+			{% endif %}
+			<a class="join-item btn btn-sm btn-disabled">...</a>
+			{% if mails.total_pages > 7 %}
+				{% for item in mails.total_pages - 2..mails.total_pages %}
+					<a href="#" data-page="{{item}}" class="join-item btn btn-sm">{{item}}</a>
+				{% endfor %}
+			{% endif %}
+			{% if mails.current_page < mails.total_pages %}
+				<a href="#" data-page="{{mails.current_page + 1}}" class="join-item btn btn-sm">»</a>
+			{% endif %}
+		</div>
+		<div class="grid justify-start content-center p-1">
+			{{mails.current_page }}
+			de
+			{{mails.total_pages}}
+		</div>
+	{% endif %}
+	{#<a class="btn" href="{{ path('app_mail_new') }}"> Create new </a>#}
+</div>

@@ -1,45 +1,29 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}BouncedEmail index{% endblock %}
-
+{% block title %}
+	Lista de email
+{% endblock %}
+{% block javascripts %}
+	{{ parent() }}
+	{{ encore_entry_script_tags('email_table') }}
+{% endblock %}
 {% block body %}
-    <h1>BouncedEmail index</h1>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>DateTime</th>
-                <th>Email</th>
-                <th>Reason</th>
-                <th>Status</th>
-                <th>CreatedAt</th>
-                <th>UpdatedAt</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for bounced_email in bounced_emails %}
-            <tr>
-                <td>{{ bounced_email.id }}</td>
-                <td>{{ bounced_email.dateTime ? bounced_email.dateTime|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ bounced_email.email }}</td>
-                <td>{{ bounced_email.reason }}</td>
-                <td>{{ bounced_email.status }}</td>
-                <td>{{ bounced_email.createdAt ? bounced_email.createdAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ bounced_email.updatedAt ? bounced_email.updatedAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <a href="{{ path('app_bounced_email_show', {'id': bounced_email.id}) }}">show</a>
-                    <a href="{{ path('app_bounced_email_edit', {'id': bounced_email.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="8">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_bounced_email_new') }}">Create new</a>
+	<div class="page-full bg-base-300">
+		<div class="w-9/12">
+			<div class="card bg-base-100 w-full shadow-xl">
+				<div class="card-body">
+					<div class="card-title">
+						<h1>Lista de email</h1>
+						<label class="input input-bordered flex items-center gap-2 input-sm">
+							<input id="search" type="text" class="grow" placeholder="Search"/>
+							<img class="h-4 w-4 opacity-70" src="{{ asset('build/images/svg/search.svg') }}" alt="search">
+						</label>
+					</div>
+					<div id="skeleton" class="skeleton h-[38rem] w-full hidden"></div>
+					<div id="email-table-list">
+						{{ include('bounced_email/_bounced_table.html.twig', {mails: mails}) }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}

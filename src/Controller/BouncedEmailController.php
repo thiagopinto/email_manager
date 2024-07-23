@@ -4,22 +4,34 @@ namespace App\Controller;
 
 use App\Entity\BouncedEmail;
 use App\Form\BouncedEmailType;
-use App\Repository\BouncedEmailRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Repository\BouncedEmailRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/bounced/email')]
 class BouncedEmailController extends AbstractController
 {
     #[Route('/', name: 'app_bounced_email_index', methods: ['GET'])]
-    public function index(BouncedEmailRepository $bouncedEmailRepository): Response
+    public function index(Request $request, BouncedEmailRepository $bouncedEmailRepository): Response
     {
+        $pagination = $bouncedEmailRepository->findAllPagination();
+
+        if ($request->isXmlHttpRequest()) {
+            $html = $this->renderView('bounced_email/_bounced_table.html.twig', [
+                'mails' => $pagination,
+            ]);
+
+            return new JsonResponse(['html' => $html]);
+        }
+
         return $this->render('bounced_email/index.html.twig', [
-            'bounced_emails' => $bouncedEmailRepository->findAll(),
+            'mails' => $pagination,
         ]);
+
     }
 
     #[Route('/new', name: 'app_bounced_email_new', methods: ['GET', 'POST'])]
