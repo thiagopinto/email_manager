@@ -22,6 +22,7 @@ Encore
    */
   .addEntry("app", "./assets/app.js")
   .addEntry("email_table", "./assets/email_table.js")
+  .addEntry("bounced_table", "./assets/bounced_table.js")
   .copyFiles({
     from: "./assets/images/svg",
     to: "images/svg/[path][name].[ext]",
