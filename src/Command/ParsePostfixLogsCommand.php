@@ -50,24 +50,30 @@ class ParsePostfixLogsCommand extends Command
                         $email = $matches[2];
                         $reason = $matches[3];
 
+                        // Verifica se a razão contém "Connection timed out"
+                        if (strpos($reason, 'Connection timed out') === false) {
+                            // Busca no banco de dados para ver se o registro já existe
+                            $existingEmailLog = $this->entityManager->getRepository(BouncedEmail::class)->findOneBy(['email' => $email]);
 
-                        // Busca no banco de dados para ver se o registro já existe
-                        $existingEmailLog = $this->entityManager->getRepository(BouncedEmail::class)->findOneBy(['email' => $email]);
+                            if ($existingEmailLog) {
+                                // Atualiza o registro existente
+                                $existingEmailLog->setDateTime(new \DateTime($date));
+                                $existingEmailLog->setReason($reason);
+                                $this->entityManager->flush();
+                            } else {
+                                // Cria uma nova entidade e persiste no banco de dados
+                                $bouncedEmail = new BouncedEmail();
+                                $bouncedEmail->setDateTime(new \DateTime($date));
+                                $bouncedEmail->setEmail($email);
+                                $bouncedEmail->setStatus('Deferred');
+                                $bouncedEmail->setReason($reason);
+                                $this->entityManager->persist($bouncedEmail);
+                                $this->entityManager->flush();
+                            }
 
-                        if ($existingEmailLog) {
-                            // Atualiza o registro existente
-                            $existingEmailLog->setDateTime(new \DateTime($date));
-                            $existingEmailLog->setReason($reason);
-                            $this->entityManager->flush();
                         } else {
-                            // Cria uma nova entidade e persiste no banco de dados
-                            $bouncedEmail = new BouncedEmail();
-                            $bouncedEmail->setDateTime(new \DateTime($date));
-                            $bouncedEmail->setEmail($email);
-                            $bouncedEmail->setStatus('Deferred');
-                            $bouncedEmail->setReason($reason);
-                            $this->entityManager->persist($bouncedEmail);
-                            $this->entityManager->flush();
+                            // Se a razão contém "Connection timed out", ignore este registro
+                            continue;
                         }
 
                     } else {
