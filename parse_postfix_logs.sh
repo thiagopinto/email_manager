@@ -18,13 +18,13 @@ php $PROJECT_DIR/bin/console app:parse-postfix-logs $LOG_FILE
 
 
 # Obtém os IDs das mensagens na fila deferred
-deferred_ids=$(mailq | awk '$7 == "deferred" {print $1}' | tr -d '*')
+# deferred_ids=$(mailq | awk '$7 == "deferred" {print $1}' | tr -d '*')
 
 # Para cada ID de mensagem, verifique se contém "Connection timed out"
-for id in $deferred_ids; do
-    if ! postcat -q $id | grep -q "Connection timed out"; then
-        postsuper -d $id
-        echo "Email $id deleted"
-    fi
-done
+#for id in $deferred_ids; do
+#    if ! postcat -q $id | grep -q "Connection timed out"; then
+#        postsuper -d $id
+#        echo "Email $id deleted"
+#    fi
+#done
 

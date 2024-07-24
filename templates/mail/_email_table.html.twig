@@ -81,7 +81,7 @@
 				{% endfor %}
 			{% endif %}
 			<a class="join-item btn btn-sm btn-disabled">...</a>
-			{% if mails.total_pages > 7 %}
+			{% if (mails.total_pages > 7) and (mails.current_page > mails.total_pages - 2) %}
 				{% for item in mails.total_pages - 2..mails.total_pages %}
 					<a href="#" data-page="{{item}}" class="join-item btn btn-sm">{{item}}</a>
 				{% endfor %}

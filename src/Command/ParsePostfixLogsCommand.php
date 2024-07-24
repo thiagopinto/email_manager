@@ -49,12 +49,21 @@ class ParsePostfixLogsCommand extends Command
             return Command::FAILURE;
         }
 
+        $deletedIds = [];
         while (($line = fgets($handle)) !== false) {
             if ($this->isDeferredLine($line)) {
-                list($date, $email, $reason) = $this->parseLogLine($line);
+                list($date, $id, $email, $reason) = $this->parseLogLine($line);
 
                 if ($this->shouldProcessLine($reason)) {
                     $this->processDeferredLine($date, $email, $reason);
+
+                    // Add ID to deleted list
+                    $deletedIds[] = $id;
+                    // Delete the message from Postfix queue
+                    exec("sudo postsuper -d $id", $execOutput, $returnVar);
+                    if ($returnVar !== 0) {
+                        $output->writeln("Failed to delete message ID: $id");
+                    }
                 }
             } else {
                 $newLogContent .= $line;
@@ -65,20 +74,25 @@ class ParsePostfixLogsCommand extends Command
         $this->entityManager->flush();
         file_put_contents($logFile, $newLogContent);
 
-        $output->writeln('Log file processed, deferred entries removed, and log file updated.');
+        if (!empty($deletedIds)) {
+            $output->writeln('Log file processed, deferred entries removed, and log file updated.');
+            $output->writeln('Deleted message IDs: ' . implode(', ', $deletedIds));
+        } else {
+            $output->writeln('No deferred entries found to remove.');
+        }
 
         return Command::SUCCESS;
     }
 
     private function isDeferredLine(string $line): bool
     {
-        return preg_match('/^(\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+postfix\/smtp\[\d+\]:\s+\w+:\s+to=<([^>]+)>,.*status=deferred\s+\((.*)\)$/', $line);
+        return preg_match('/^(\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+postfix\/(?:smtp|error)\[\d+\]:\s+([A-F0-9]+):\s+to=<([^>]+)>,.*status=deferred\s+\((.*)\)$/i', $line);
     }
 
     private function parseLogLine(string $line): array
     {
-        preg_match('/^(\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+postfix\/smtp\[\d+\]:\s+\w+:\s+to=<([^>]+)>,.*status=deferred\s+\((.*)\)$/', $line, $matches);
-        return [$matches[1], $matches[2], $matches[3]];
+        preg_match('/^(\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+postfix\/(?:smtp|error)\[\d+\]:\s+([A-F0-9]+):\s+to=<([^>]+)>,.*status=deferred\s+\((.*)\)$/i', $line, $matches);
+        return [$matches[1], $matches[2], $matches[3], $matches[4]];
     }
 
     private function shouldProcessLine(string $reason): bool
